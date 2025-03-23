@@ -40,59 +40,69 @@ const Substitution: React.FC = () => {
         if (facultyDoc.exists()) {
           const data = facultyDoc.data();
           
-          // Set timetable if it exists
-          if (data.timetable) {
-            // Timetable not needed
-          }
+          // Debug: Log the full timetable structure
+          console.log("Timetable structure:", data.timetable);
           
           // Extract classes from timetable structure
           if (data.timetable && data.timetable.days) {
             const theory: ClassInfo[] = [];
             const lab: ClassInfo[] = [];
             
-            // Days of the week
-            const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+            // Process all days directly
+            const daysData = data.timetable.days;
             
-            days.forEach(day => {
-              if (data.timetable.days[day]) {
-                // Process theory classes
-                if (data.timetable.days[day].theory) {
-                  data.timetable.days[day].theory.forEach((classInfo: TimetableClassInfo | null, index: number) => {
-                    if (classInfo && classInfo.code) {
-                      const exists = theory.some(c => c.code === classInfo.code);
-                      if (!exists) {
-                        theory.push({
-                          id: `theory-${day}-${index}`,
-                          code: classInfo.code,
-                          name: classInfo.code, // You might want to add a better name if available
-                          type: 'theory'
-                        });
-                      }
+            // Iterate through each day (Monday, Tuesday, etc.)
+            Object.keys(daysData).forEach(day => {
+              const dayData = daysData[day];
+              
+              // Process theory classes for this day
+              if (dayData.theory && Array.isArray(dayData.theory)) {
+                dayData.theory.forEach((classInfo: TimetableClassInfo | null) => {
+                  if (classInfo && classInfo.code) {
+                    // Check if this class is already in our array
+                    const exists = theory.some(c => c.code === classInfo.code);
+                    if (!exists) {
+                      const classId = `theory-${classInfo.code}`;
+                      theory.push({
+                        id: classId,
+                        code: classInfo.code,
+                        name: classInfo.code,
+                        type: 'theory'
+                      });
+                      console.log(`Added theory class: ${classInfo.code} with ID: ${classId}`);
                     }
-                  });
-                }
-                
-                // Process lab classes
-                if (data.timetable.days[day].lab) {
-                  data.timetable.days[day].lab.forEach((classInfo: TimetableClassInfo | null, index: number) => {
-                    if (classInfo && classInfo.code) {
-                      const exists = lab.some(c => c.code === classInfo.code);
-                      if (!exists) {
-                        lab.push({
-                          id: `lab-${day}-${index}`,
-                          code: classInfo.code,
-                          name: classInfo.code, // You might want to add a better name if available
-                          type: 'lab'
-                        });
-                      }
+                  }
+                });
+              }
+              
+              // Process lab classes for this day
+              if (dayData.lab && Array.isArray(dayData.lab)) {
+                dayData.lab.forEach((classInfo: TimetableClassInfo | null) => {
+                  if (classInfo && classInfo.code) {
+                    // Check if this class is already in our array
+                    const exists = lab.some(c => c.code === classInfo.code);
+                    if (!exists) {
+                      const classId = `lab-${classInfo.code}`;
+                      lab.push({
+                        id: classId,
+                        code: classInfo.code,
+                        name: classInfo.code,
+                        type: 'lab'
+                      });
+                      console.log(`Added lab class: ${classInfo.code} with ID: ${classId}`);
                     }
-                  });
-                }
+                  }
+                });
               }
             });
             
+            console.log("Theory classes:", theory);
+            console.log("Lab classes:", lab);
+            
             setTheoryClasses(theory);
             setLabClasses(lab);
+          } else {
+            console.warn("No timetable data found or it does not have the expected structure");
           }
         }
       } catch (error) {
@@ -132,8 +142,14 @@ const Substitution: React.FC = () => {
               <Button onClick={() => navigate("/dashboard")} variant="outline">
                 Dashboard
               </Button>
+              <Button onClick={() => navigate("/substitution")} variant="default">
+                Substitution
+              </Button>
+              <Button onClick={() => navigate("/group-chat")} variant="outline">
+                Group Chat
+              </Button>
               <Button onClick={() => navigate("/chat")} variant="outline">
-                Chat
+                Private Chat
               </Button>
             </div>
           </div>

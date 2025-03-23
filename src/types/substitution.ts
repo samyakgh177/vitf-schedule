@@ -39,7 +39,6 @@ export interface RequestFormProps {
   userName: string;
   theoryClasses: ClassInfo[];
   labClasses: ClassInfo[];
-  timetable: Timetable;
   onRequestCreated?: () => void;
 }
 

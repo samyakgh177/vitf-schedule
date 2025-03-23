@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,24 @@ const RequestForm: React.FC<RequestFormProps> = ({
     date?: string;
     reason?: string;
   }>({});
+  
+  // Class options based on selected type
+  const classOptions = selectedClassType === "theory" ? theoryClasses : labClasses;
+  
+  // Debug log for props and state
+  useEffect(() => {
+    console.log("RequestForm Props - Theory Classes:", theoryClasses);
+    console.log("RequestForm Props - Lab Classes:", labClasses);
+    console.log("Selected Class Type:", selectedClassType);
+    console.log("Current Class Options:", classOptions);
+    console.log("Currently Selected Class:", selectedClass);
+  }, [theoryClasses, labClasses, selectedClassType, classOptions, selectedClass]);
+  
+  // Reset selected class when class type changes
+  useEffect(() => {
+    console.log("Class type changed to:", selectedClassType);
+    setSelectedClass(null);
+  }, [selectedClassType]);
   
   const validateForm = (): boolean => {
     const newErrors: {
@@ -125,7 +143,34 @@ const RequestForm: React.FC<RequestFormProps> = ({
     }
   };
   
-  const classOptions = selectedClassType === "theory" ? theoryClasses : labClasses;
+  const handleClassSelect = (value: string) => {
+    console.log("Select onValueChange called with value:", value);
+    console.log("Current classOptions:", classOptions);
+    
+    // Validate if value is empty
+    if (!value) {
+      console.log("Empty value selected");
+      setSelectedClass(null);
+      return;
+    }
+    
+    // Find the selected class in the options
+    const selected = classOptions.find(c => c.id === value);
+    console.log("Found selected class:", selected);
+    
+    if (selected) {
+      setSelectedClass(selected);
+      setErrors({...errors, class: undefined});
+      console.log("Class selected successfully:", selected);
+    } else {
+      console.error("No class found with ID:", value);
+      console.error("Available class IDs:", classOptions.map(c => c.id));
+      toast("Error selecting class", {
+        description: "There was an issue selecting this class. Please try again.",
+        duration: 3000,
+      });
+    }
+  };
   
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -139,6 +184,7 @@ const RequestForm: React.FC<RequestFormProps> = ({
               type="button"
               variant={selectedClassType === "theory" ? "default" : "outline"}
               onClick={() => {
+                console.log("Switching to theory classes");
                 setSelectedClassType("theory");
                 setSelectedClass(null);
               }}
@@ -153,6 +199,7 @@ const RequestForm: React.FC<RequestFormProps> = ({
               type="button"
               variant={selectedClassType === "lab" ? "default" : "outline"}
               onClick={() => {
+                console.log("Switching to lab classes");
                 setSelectedClassType("lab");
                 setSelectedClass(null);
               }}
@@ -169,24 +216,24 @@ const RequestForm: React.FC<RequestFormProps> = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Select Class</label>
           <Select
-            value={selectedClass?.id}
-            onValueChange={(value) => {
-              const selected = classOptions.find(c => c.id === value) || null;
-              setSelectedClass(selected);
-              if (selected) {
-                setErrors({...errors, class: undefined});
-              }
-            }}
+            value={selectedClass?.id || ""}
+            onValueChange={handleClassSelect}
           >
             <SelectTrigger className={cn(errors.class && "border-red-500")}>
               <SelectValue placeholder="Select a class" />
             </SelectTrigger>
             <SelectContent>
-              {classOptions.map((classInfo) => (
-                <SelectItem key={classInfo.id} value={classInfo.id}>
-                  {classInfo.code} - {classInfo.name}
+              {classOptions && classOptions.length > 0 ? (
+                classOptions.map((classInfo) => (
+                  <SelectItem key={classInfo.id} value={classInfo.id}>
+                    {classInfo.code} - {classInfo.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem disabled value="no-classes">
+                  No classes available
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
           {errors.class && <p className="text-sm text-red-500">{errors.class}</p>}
@@ -213,6 +260,7 @@ const RequestForm: React.FC<RequestFormProps> = ({
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => {
+                  console.log("Date selected:", date);
                   setSelectedDate(date);
                   if (date) {
                     setErrors({...errors, date: undefined});
