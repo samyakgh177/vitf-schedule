@@ -145,10 +145,10 @@ const Substitution: React.FC = () => {
               <Button onClick={() => navigate("/substitution")} variant="default">
                 Substitution
               </Button>
-              <Button onClick={() => navigate("/group-chat")} variant="outline">
+              <Button onClick={() => navigate("/chat")} variant="outline">
                 Group Chat
               </Button>
-              <Button onClick={() => navigate("/chat")} variant="outline">
+              <Button onClick={() => navigate("/private-chat")} variant="outline">
                 Private Chat
               </Button>
             </div>
