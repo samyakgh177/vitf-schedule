@@ -55,7 +55,7 @@ const createDefaultTimetable = (): Timetable => {
     };
   });
   
-  return {
+    return {
     theorySlots: defaultTheorySlots,
     labSlots: defaultLabSlots,
     days: daysObj
@@ -76,18 +76,18 @@ const getHighlightColor = (code: string): string => {
 };
 
 export const TimetableInput: React.FC = () => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   const [timetable, setTimetable] = useState<Timetable>(createDefaultTimetable());
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeDay, setActiveDay] = useState("Monday");
   const [activeType, setActiveType] = useState<"theory" | "lab">("theory");
-  const [profile, setProfile] = useState({
-    name: "",
-    department: "",
-    employeeId: ""
-  });
+    const [profile, setProfile] = useState({
+      name: "",
+      department: "",
+      employeeId: ""
+    });
 
   // Class input form state
   const [classInput, setClassInput] = useState({
@@ -96,34 +96,34 @@ export const TimetableInput: React.FC = () => {
     room: "",
     instructor: ""
   });
-
-  useEffect(() => {
-    const loadData = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const docRef = doc(db, "faculty", user.uid);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setProfile({
-          name: data.name || "",
-          department: data.department || "",
-          employeeId: data.employeeId || ""
-        });
-        if (data.timetable) setTimetable(data.timetable);
-      }
+  
+    useEffect(() => {
+      const loadData = async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+  
+        const docRef = doc(db, "faculty", user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setProfile({
+            name: data.name || "",
+            department: data.department || "",
+            employeeId: data.employeeId || ""
+          });
+          if (data.timetable) setTimetable(data.timetable);
+        }
+      };
+      loadData();
+    }, []);
+  
+    const validateProfile = () => {
+      if (!profile.name.trim()) return "Full name is required";
+      if (!profile.department.trim()) return "Department is required";
+      if (!profile.employeeId.trim()) return "Employee ID is required";
+      return null;
     };
-    loadData();
-  }, []);
-
-  const validateProfile = () => {
-    if (!profile.name.trim()) return "Full name is required";
-    if (!profile.department.trim()) return "Department is required";
-    if (!profile.employeeId.trim()) return "Employee ID is required";
-    return null;
-  };
 
   const handleAddClass = () => {
     const slotIndex = parseInt(classInput.slotIndex);
@@ -154,87 +154,87 @@ export const TimetableInput: React.FC = () => {
     newTimetable.days[activeDay][activeType][slotIndex] = null;
     setTimetable(newTimetable);
   };
-
-  const handleSave = async (e: FormEvent) => {
-    e.preventDefault();
-    const profileError = validateProfile();
-    if (profileError) return setError(profileError);
-
-    try {
-      setLoading(true);
-      const user = auth.currentUser;
-      if (!user) throw new Error("User not authenticated");
-
-      await setDoc(doc(db, "faculty", user.uid), {
-        ...profile,
+  
+    const handleSave = async (e: FormEvent) => {
+      e.preventDefault();
+      const profileError = validateProfile();
+      if (profileError) return setError(profileError);
+  
+      try {
+        setLoading(true);
+        const user = auth.currentUser;
+        if (!user) throw new Error("User not authenticated");
+  
+        await setDoc(doc(db, "faculty", user.uid), {
+          ...profile,
         timetable: timetable,
-        signupCompleted: false
-      }, { merge: true });
-
-      setSaveSuccess(true);
-      setError("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFinish = async () => {
-    const profileError = validateProfile();
-    if (profileError) return setError(profileError);
-
-    try {
-      setLoading(true);
-      const user = auth.currentUser;
-      if (!user) throw new Error("User not authenticated");
-
-      await setDoc(doc(db, "faculty", user.uid), {
-        signupCompleted: true,
-        completedAt: new Date()
-      }, { merge: true });
-
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Completion failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Card className="p-6 mb-6">
-        <h2 className="text-2xl font-bold mb-6">Faculty Profile Setup</h2>
-        
-        <div className="grid gap-4 mb-8">
-          <div>
-            <Label>Full Name *</Label>
-            <Input
-              value={profile.name}
-              onChange={(e) => setProfile({...profile, name: e.target.value})}
-              placeholder="Dr. Jane Doe"
-            />
+          signupCompleted: false
+        }, { merge: true });
+  
+        setSaveSuccess(true);
+        setError("");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to save data");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    const handleFinish = async () => {
+      const profileError = validateProfile();
+      if (profileError) return setError(profileError);
+  
+      try {
+        setLoading(true);
+        const user = auth.currentUser;
+        if (!user) throw new Error("User not authenticated");
+  
+        await setDoc(doc(db, "faculty", user.uid), {
+          signupCompleted: true,
+          completedAt: new Date()
+        }, { merge: true });
+  
+        navigate("/dashboard");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Completion failed");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card className="p-6 mb-6">
+          <h2 className="text-2xl font-bold mb-6">Faculty Profile Setup</h2>
+          
+          <div className="grid gap-4 mb-8">
+            <div>
+              <Label>Full Name *</Label>
+              <Input
+                value={profile.name}
+                onChange={(e) => setProfile({...profile, name: e.target.value})}
+                placeholder="Dr. Jane Doe"
+              />
+            </div>
+            <div>
+              <Label>Department *</Label>
+              <Input
+                value={profile.department}
+                onChange={(e) => setProfile({...profile, department: e.target.value})}
+                placeholder="Computer Science"
+              />
+            </div>
+            <div>
+              <Label>Employee ID *</Label>
+              <Input
+                value={profile.employeeId}
+                onChange={(e) => setProfile({...profile, employeeId: e.target.value})}
+                placeholder="VITF-1234"
+              />
+            </div>
           </div>
-          <div>
-            <Label>Department *</Label>
-            <Input
-              value={profile.department}
-              onChange={(e) => setProfile({...profile, department: e.target.value})}
-              placeholder="Computer Science"
-            />
-          </div>
-          <div>
-            <Label>Employee ID *</Label>
-            <Input
-              value={profile.employeeId}
-              onChange={(e) => setProfile({...profile, employeeId: e.target.value})}
-              placeholder="VITF-1234"
-            />
-          </div>
-        </div>
-
-        <div className="mb-6">
+  
+          <div className="mb-6">
           <h3 className="text-xl font-semibold mb-4">Timetable Builder</h3>
           <p className="text-sm text-gray-500 mb-4">
             Build your timetable by selecting days and adding your classes for each time slot.
@@ -446,31 +446,31 @@ export const TimetableInput: React.FC = () => {
               </TabsContent>
             ))}
           </Tabs>
-        </div>
-
-        {error && <div className="text-red-600 mb-4">{error}</div>}
-        {saveSuccess && <div className="text-green-600 mb-4">Data saved successfully!</div>}
-
-        <div className="flex gap-4">
-          <Button
-            onClick={handleSave}
+          </div>
+  
+          {error && <div className="text-red-600 mb-4">{error}</div>}
+          {saveSuccess && <div className="text-green-600 mb-4">Data saved successfully!</div>}
+  
+          <div className="flex gap-4">
+            <Button
+              onClick={handleSave}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {loading ? "Saving..." : "Save All Data"}
+            </Button>
+            
+            <Button
+              onClick={handleFinish}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {loading ? "Saving..." : "Save All Data"}
-          </Button>
-          
-          <Button
-            onClick={handleFinish}
-            disabled={loading}
-            className="bg-green-600 hover:bg-green-700 ml-auto"
-          >
-            Complete Setup → 
-          </Button>
-        </div>
-      </Card>
-    </div>
-  );
-};
-
-export default TimetableInput;
+              className="bg-green-600 hover:bg-green-700 ml-auto"
+            >
+              Complete Setup → 
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  };
+  
+  export default TimetableInput;
