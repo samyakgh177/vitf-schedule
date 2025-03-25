@@ -28,15 +28,16 @@ const ChatThread: React.FC<ChatThreadProps> = ({ chatId, otherUserId, otherUserN
   };
   
   useEffect(() => {
+    // Scroll to bottom when messages change
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages]);
+  
+  useEffect(() => {
     // No chat selected state
     if (!chatId) {
-      setLoading(false);
-      return;
-    }
-    
-    // Authentication check
-    if (!auth.currentUser) {
-      setError("You must be logged in to view messages");
+      setMessages([]);
       setLoading(false);
       return;
     }
@@ -45,58 +46,48 @@ const ChatThread: React.FC<ChatThreadProps> = ({ chatId, otherUserId, otherUserN
     setError(null);
     
     try {
+      // Set up real-time listener for messages in this chat
       const messagesRef = collection(db, "chatThreads", chatId, "messages");
       const q = query(messagesRef, orderBy("timestamp", "asc"));
       
-      const unsubscribe = onSnapshot(
-        q,
-        (querySnapshot) => {
-          const fetchedMessages: Array<{
-            id: string;
-            text: string;
-            senderId: string;
-            timestamp: any;
-            read: boolean;
-          }> = [];
-          const currentUserId = auth.currentUser?.uid || "";
-          
-          querySnapshot.forEach((doc) => {
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const loadedMessages: Array<{
+          id: string;
+          text: string;
+          senderId: string;
+          timestamp: any;
+          read: boolean;
+        }> = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          loadedMessages.push({
+            id: doc.id,
+            text: data.text,
+            senderId: data.senderId,
+            timestamp: data.timestamp,
+            read: data.read
+          });
+        });
+        
+        setMessages(loadedMessages);
+        setLoading(false);
+        
+        // Mark messages as read if they are sent by the other user
+        if (auth.currentUser) {
+          snapshot.forEach((doc) => {
             const data = doc.data();
-            fetchedMessages.push({
-              id: doc.id,
-              text: data.text || "",
-              senderId: data.senderId || "",
-              timestamp: data.timestamp,
-              read: data.read || false
-            });
-            
-            // Mark messages as read if they are from the other user
-            if (!data.read && data.senderId === otherUserId && currentUserId) {
-              updateDoc(doc.ref, { read: true }).catch(err => {
-                console.error("Error marking message as read:", err);
+            if (data.senderId === otherUserId && !data.read) {
+              // Update the message to be marked as read
+              updateDoc(doc.ref, { read: true }).catch(() => {
+                // Silent catch - non-critical operation
               });
             }
           });
-          
-          setMessages(fetchedMessages);
-          setLoading(false);
-          
-          // Scroll to bottom whenever messages update
-          setTimeout(scrollToBottom, 100);
-        },
-        (error) => {
-          console.error("Error fetching messages:", error);
-          setError("Failed to load messages. Please try again.");
-          setLoading(false);
-          toast("Error", {
-            description: "Failed to load messages. Please try refreshing.",
-          });
         }
-      );
+      });
       
       return () => unsubscribe();
     } catch (error) {
-      console.error("Error setting up messages listener:", error);
       setError("Failed to set up message listener. Please try again.");
       setLoading(false);
     }
@@ -142,7 +133,6 @@ const ChatThread: React.FC<ChatThreadProps> = ({ chatId, otherUserId, otherUserN
       
       setNewMessage("");
     } catch (error) {
-      console.error("Error sending message:", error);
       toast("Error", {
         description: "Failed to send message. Please try again.",
       });

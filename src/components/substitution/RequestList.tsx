@@ -86,8 +86,7 @@ const RequestList: React.FC<RequestListProps> = ({ userId, userName }) => {
         setLoading(false);
         setError(null);
       },
-      (err) => {
-        console.error("Error fetching requests:", err);
+      () => {
         setError("Failed to load requests. Please try again.");
         setLoading(false);
         toast("Error", {

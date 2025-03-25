@@ -44,16 +44,12 @@ const RequestForm: React.FC<RequestFormProps> = ({
   
   // Debug log for props and state
   useEffect(() => {
-    console.log("RequestForm Props - Theory Classes:", theoryClasses);
-    console.log("RequestForm Props - Lab Classes:", labClasses);
-    console.log("Selected Class Type:", selectedClassType);
-    console.log("Current Class Options:", classOptions);
-    console.log("Currently Selected Class:", selectedClass);
+    // Removed console logs
   }, [theoryClasses, labClasses, selectedClassType, classOptions, selectedClass]);
   
   // Reset selected class when class type changes
   useEffect(() => {
-    console.log("Class type changed to:", selectedClassType);
+    // Removed console logs
     setSelectedClass(null);
   }, [selectedClassType]);
   
@@ -144,27 +140,21 @@ const RequestForm: React.FC<RequestFormProps> = ({
   };
   
   const handleClassSelect = (value: string) => {
-    console.log("Select onValueChange called with value:", value);
-    console.log("Current classOptions:", classOptions);
+    // Removed console logs
     
     // Validate if value is empty
     if (!value) {
-      console.log("Empty value selected");
       setSelectedClass(null);
       return;
     }
     
     // Find the selected class in the options
     const selected = classOptions.find(c => c.id === value);
-    console.log("Found selected class:", selected);
     
     if (selected) {
       setSelectedClass(selected);
       setErrors({...errors, class: undefined});
-      console.log("Class selected successfully:", selected);
     } else {
-      console.error("No class found with ID:", value);
-      console.error("Available class IDs:", classOptions.map(c => c.id));
       toast("Error selecting class", {
         description: "There was an issue selecting this class. Please try again.",
         duration: 3000,

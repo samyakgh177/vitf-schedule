@@ -99,7 +99,6 @@ const UserSearch: React.FC<UserSearchProps> = ({ onChatStart }) => {
         setError("No users found. Try a different search term.");
       }
     } catch (error) {
-      console.error("Error searching users:", error);
       setError("Failed to search users. Please try again.");
       toast("Search failed", {
         description: "There was a problem searching for users. Please try again.",
